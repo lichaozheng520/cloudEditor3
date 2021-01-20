@@ -8,8 +8,11 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   const [ editStatus, setEditStatus ] = useState(false)
   const [ value, setValue ] = useState('')
   const closeSearch = (e) => {
+    // 阻止默认事件
     e.preventDefault()
+    // 设置默认编辑状态
     setEditStatus(false)
+    // 设置默认值
     setValue('')
   }
   useEffect(() => {
@@ -19,7 +22,9 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
       if(keyCode === 13 && editStatus){
         const editItem = files.find(file => file.id === editStatus)
         onSaveEdit(editItem.id, value)
+        // 设置编辑状态为默认值
         setEditStatus(false)
+        // 设置值为默认值
         setValue('')
         // 如果是Esc键就关闭
       }else if(keyCode === 27 && editStatus){
@@ -103,6 +108,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
 FileList.propTypes = {
   // 要求必须是数组
   files: PropTypes.array,
+  // 要求必须是函数
   onFileClick: PropTypes.func,
   onFileDelete: PropTypes.func,
   onSaveEdit: PropTypes.func,

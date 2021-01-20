@@ -2,27 +2,35 @@
   import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
   import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons'
   import PropTypes from 'prop-types'
+  import useKeyPress from '../hooks/useKeyPress.js'
+  
   const FileSearch = ({ title, onFileSearch }) => {
   const [ inputActive, setInputActive ] = useState(false)
   const [ value, setValue ] = useState('')
   
+  // 传入键码，使用自定义Hook useKeyPress中的两个键
+  const enterPressed = useKeyPress(13)
+  const escPressed = useKeyPress(27)
+  
   let node = useRef(null)
   
   // 定义方法closeSearch
-  const closeSearch = (e) => {
-    // 阻止默认行为
-    e.preventDefault()
+  const closeSearch = () => {
     setInputActive(false)
     // 清空
     setValue('')
   }
   useEffect(() => {
-    const handleInputEvent = (event) => {
+    if(enterPressed && inputActive){
+      onFileSearch(value)
+    }
+    if(escPressed && inputActive){
+      closeSearch()
+    }
+    /* const handleInputEvent = (event) => {
       const { keyCode } = event
-      // 如果是enter键就传入搜索值
       if(keyCode === 13 && inputActive){
         onFileSearch(value)
-        // 如果是Esc键就关闭
       }else if(keyCode === 27 && inputActive){
         closeSearch(event)
       }
@@ -30,7 +38,7 @@
     document.addEventListener('keyup', handleInputEvent)
     return () => {
       document.removeEventListener('keyup', handleInputEvent)
-    }
+    } */
   })
   useEffect(() => {
     // 当点击"搜索"的时候才调用focus
@@ -41,7 +49,7 @@
   }, [inputActive])
   
   return (
-    <div className="alert alert-primary d-flex justify-content-between">
+    <div className="alert alert-primary d-flex justify-content-between align-items-center mb-0">
       { !inputActive &&
         <>
           <span>{ title }</span>
@@ -80,4 +88,5 @@ FileSearch.defaultProps = {
   //如果同时添加了title属性，那么默认属性会被覆盖
   title: 'My Document'
 }
+
 export default FileSearch
