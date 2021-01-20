@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
-const FileSearch = ({ title, onFileSearch }) => {
+  import React, { useState, useEffect, useRef } from 'react'
+  import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+  import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons'
+  import PropTypes from 'prop-types'
+  const FileSearch = ({ title, onFileSearch }) => {
   const [ inputActive, setInputActive ] = useState(false)
   const [ value, setValue ] = useState('')
   
@@ -38,31 +41,43 @@ const FileSearch = ({ title, onFileSearch }) => {
   }, [inputActive])
   
   return (
-    <div className="alert alert-primary">
+    <div className="alert alert-primary d-flex justify-content-between">
       { !inputActive &&
-        <div className="d-flex justify-content-between">
+        <>
           <span>{ title }</span>
           <button type="button"
-            className="btn btn-primary"
+            className="icon-button"
             onClick={() => { setInputActive(true) }}>
-            搜索
+            <FontAwesomeIcon title="搜索" size="lg" icon={ faSearch } />
           </button>
-        </div>
+        </>
       }
       { inputActive && 
-        <div className="row">
-          <input className="form-control col-8" 
+        <>
+          <input className="form-control" 
             value={value}
             ref={node}
             onChange={ (e) => { setValue(e.target.value) } } />
           <button type="button"
-            className="btn btn-primary col-4"
+            className="icon-button"
             onClick={ closeSearch }>
-            关闭
+            <FontAwesomeIcon title="关闭" size="lg" icon={ faTimes } />
           </button>
-        </div>
+        </>
       }
     </div>
   )
+}
+  
+// 添加属性检查
+FileSearch.propTypes = {
+  // 要求必须是字符串
+  title: PropTypes.string,
+  onFileSearch: PropTypes.func.isRequired
+}
+// 添加默认属性
+FileSearch.defaultProps = {
+  //如果同时添加了title属性，那么默认属性会被覆盖
+  title: 'My Document'
 }
 export default FileSearch
