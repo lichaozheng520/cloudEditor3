@@ -10,6 +10,12 @@ const defaultFiles = [
     title: 'second post',
     body: '## this is the title',
     createdAt: 2315786970
+  },
+  {
+    id: '3',
+    title: '你好世界',
+    body: '## this is the title',
+    createdAt: 2315786988
   }
 ]
 
