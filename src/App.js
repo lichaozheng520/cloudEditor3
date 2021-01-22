@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from 'react-simplemde-editor'
 import './App.css'
@@ -11,16 +11,24 @@ import BottomBtn from './components/BottomBtn'
 import TabList from './components/TabList'
 
 function App() {
+  const [files, setFiles] = useState(defaultFiles)
+  const [activeFileID, setActiveFileID] = useState('')
+  const [openedFileIDs, setOpenedFileIDs] = useState([])
+  const [unsavedFileIDs, setUnsavedFileIDs] = useState([])
+  const openedFiles = openedFileIDs.map(openID => {
+    return files.find(file => file.id === openID)
+  })
+  const activeFile = files.find(file => file.id === activeFileID)
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
-        <div className="col-3 bg-danger left-panel">
+        <div className="col-3 left-panel">
           <FileSearch
             title="我的云文档"
             onFileSearch={ (value) => { console.log(value) } }
           />
           <FileList 
-            files={defaultFiles}
+            files={files}
             onFileClick={ (id) => {console.log(id)} }
             onFileDelete={ (id) => {console.log('deleting', id)} }
             onSaveEdit={ (id, newValue) => {
@@ -28,7 +36,7 @@ function App() {
               console.log(newValue)}
             }
           />
-          <div className="row no-gutters">
+          <div className="row no-gutters button-group">
             <div className="col">
               <BottomBtn 
                 text="新建"
@@ -46,21 +54,30 @@ function App() {
           </div>
         </div>
         <div className="col-9 right-panel">
-          <TabList
-            files={defaultFiles}
-            activeId="1"
-            unsaveIds={["1", "2"]}
-            onTabClick={(id) => {console.log(id)}}
-            onCloseTab={(id) => {console.log('closing', id)}}
-          />
-          <SimpleMDE
-            value={defaultFiles[1].body}
-            onChange={(value) => {console.log(value)}}
-            options={{
-              minHeight: '515px',
-              autoDownloadFontAwesome: false
-            }}
-          />
+          { !activeFile &&
+            <div className="start-page">
+              选择或者创建新的Markdown 文档
+            </div>
+          }
+          { activeFile &&
+            <>
+              <TabList
+                files={openedFiles}
+                activeId={activeFileID}
+                unsaveIds={unsavedFileIDs}
+                onTabClick={(id) => {console.log(id)}}
+                onCloseTab={(id) => {console.log('closing', id)}}
+              />
+              <SimpleMDE
+                value={activeFile && activeFile.body}
+                onChange={(value) => {console.log(value)}}
+                options={{
+                  minHeight: '515px',
+                  autoDownloadFontAwesome: false
+                }}
+              />
+            </>
+          }
         </div>
       </div>
     </div>
