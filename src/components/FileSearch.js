@@ -19,6 +19,8 @@
     setInputActive(false)
     // 清空
     setValue('')
+    // 搜索一次空字符串,使得原来的文件恢复
+    onFileSearch('')
   }
   useEffect(() => {
     if(enterPressed && inputActive){
