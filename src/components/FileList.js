@@ -3,37 +3,48 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { faMarkdown } from '@fortawesome/free-brands-svg-icons'
 import PropTypes from 'prop-types'
+import useKeyPress from '../hooks/useKeyPress.js'
 
 const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   const [ editStatus, setEditStatus ] = useState(false)
   const [ value, setValue ] = useState('')
-  const closeSearch = (e) => {
-    // 阻止默认事件
-    e.preventDefault()
+  let node = useRef(null)
+  const enterPressed = useKeyPress(13)
+  const escPressed = useKeyPress(27)
+  const closeSearch = (editItem) => {
     // 设置默认编辑状态
     setEditStatus(false)
     // 设置默认值
     setValue('')
-  }
-  useEffect(() => {
-    const handleInputEvent = (event) => {
-      const { keyCode } = event
-      // 如果是enter键就传入搜索值
-      if(keyCode === 13 && editStatus){
-        const editItem = files.find(file => file.id === editStatus)
-        onSaveEdit(editItem.id, value)
-        // 设置编辑状态为默认值
-        setEditStatus(false)
-        // 设置值为默认值
-        setValue('')
-        // 如果是Esc键就关闭
-      }else if(keyCode === 27 && editStatus){
-        closeSearch(event)
-      }
+    // if we are editing a newly created file,
+    // we should delete this file when pressing esc
+    if(editItem.isNew){
+      onFileDelete(editItem.id)
     }
-    document.addEventListener('keyup', handleInputEvent)
-    return () => {
-      document.removeEventListener('keyup', handleInputEvent)
+  }
+
+  useEffect(() => {
+    const newFile = files.find(file => file.isNew)
+    console.log(newFile)
+    if(newFile){
+      setEditStatus(newFile.id)
+      setValue(newFile.title)
+    }
+    // 当files有所变化的时候运行该useEffect
+  }, [files])
+
+  useEffect(() => {
+    const editItem = files.find(file => file.id === editStatus)
+    // 如果是enter键/同时是编辑状态/同时value值不为空,那么就传入搜索值
+    if(enterPressed && editStatus && (value.trim() !== '')){
+      onSaveEdit(editItem.id, value)
+      // 设置编辑状态为默认值
+      setEditStatus(false)
+      // 设置值为默认值
+      setValue('')
+      // 如果是Esc键/同时是编辑状态，那么就关闭
+    }else if(escPressed && editStatus){
+      closeSearch(editItem)
     }
   })
   return (
@@ -43,7 +54,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
           <li className="list-group-item bg-light row d-flex align-items-center file-item mx-0"
               key={file.id}
           >
-            { (file.id !== editStatus) &&
+            { ((file.id !== editStatus) && !file.isNew) &&
               <>
                 <span className="col-2">
                   <FontAwesomeIcon 
@@ -81,14 +92,15 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                 </button>
               </>
             }
-            { (file.id === editStatus) &&
+            { ((file.id === editStatus) || file.isNew) &&
               <>
                 <input className="form-control col-10" 
                   value={value}
+                  placeholder="请输入文件名称"
                   onChange={ (e) => { setValue(e.target.value) } } />
                 <button type="button"
                   className="icon-button col-2"
-                  onClick={ closeSearch }>
+                  onClick={() => { closeSearch(file)} }>
                   <FontAwesomeIcon 
                     title="关闭"
                     size="lg"
