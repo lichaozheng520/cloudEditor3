@@ -12,12 +12,17 @@ import defaultFiles from './utils/defaultFiles'
 import BottomBtn from './components/BottomBtn'
 import TabList from './components/TabList'
 
+// 在React的App.js中引用Node.js的模块
+// 需要在require前添加window对象
+const fs = window.require('fs')
+console.dir(fs)
+
 function App() {
   // 修改前的代码
   // const [files, setFiles] = useState(defaultFiles)
   // 修改后的代码
   const [files, setFiles] = useState(flattenArr(defaultFiles))
-  console.log(files)
+  //console.log(files)
   const [activeFileID, setActiveFileID] = useState('')
   const [openedFileIDs, setOpenedFileIDs] = useState([])
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([])
@@ -25,7 +30,7 @@ function App() {
   
   // 添加的代码
   const filesArr = objToArr(files)
-  console.log(filesArr)
+  //console.log(filesArr)
   
   const openedFiles = openedFileIDs.map(openID => {
     // return files.find(file => file.id === openID)
