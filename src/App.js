@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from 'react-simplemde-editor'
 import { v4 as uuidv4 } from 'uuid'
+import {flattenArr, objToArr} from './utils/helper'
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'easymde/dist/easymde.min.css'
@@ -12,15 +13,28 @@ import BottomBtn from './components/BottomBtn'
 import TabList from './components/TabList'
 
 function App() {
-  const [files, setFiles] = useState(defaultFiles)
+  // 修改前的代码
+  // const [files, setFiles] = useState(defaultFiles)
+  // 修改后的代码
+  const [files, setFiles] = useState(flattenArr(defaultFiles))
+  console.log(files)
   const [activeFileID, setActiveFileID] = useState('')
   const [openedFileIDs, setOpenedFileIDs] = useState([])
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([])
   const [searchedFiles, setSearchedFiles] = useState([])
+  
+  // 添加的代码
+  const filesArr = objToArr(files)
+  console.log(filesArr)
+  
   const openedFiles = openedFileIDs.map(openID => {
-    return files.find(file => file.id === openID)
+    // return files.find(file => file.id === openID)
+    return files[openID]
   })
-  const activeFile = files.find(file => file.id === activeFileID)
+  // 修改前代码
+  // const activeFile = files.find(file=>file.id === activeFileID)
+  // 修改后代码
+  const activeFile = files[activeFileID]
   
   const fileClick = (fileID) => {
     // set current active file
@@ -49,14 +63,16 @@ function App() {
   }
   // 当文件改变的时候
   const fileChange = (id, value) => {
-    // loop through file array to update to new value
-    const newFiles = files.map(file => {
+    // 原来的代码
+    /* const newFile = files.map(file => {
       if(file.id === id){
-        file.body = value
-      }
-      return file
-    })
-    setFiles(newFiles)
+      file.body = value
+    }
+    return file
+    }) */
+    // 修改后的代码
+    const newFile = {...files[id], body: value}
+    setFiles({...files, [id]: newFile})
     // update unsavedIDs
     if(!unsavedFileIDs.includes(id)){
       setUnsavedFileIDs([...unsavedFileIDs, id])
@@ -65,45 +81,72 @@ function App() {
     // 当删除文件的时候
   const deleteFile = (id) => {
     // filter out the current file id
-    const newFiles = files.filter(file => file.id !== id)
-    setFiles(newFiles)
+    
+    // 修改前的代码
+    //const newFile = files.filter(file => file.id !== id)
+    // 修改后的代码
+    delete files[id]
+    setFiles(files)
     // close the tab if opened
     tabClose(id)
   }
   // 更新文件名的功能
   const updateFileName = (id, title) => {
-    const newFiles = files.map(file => {
-      if(file.id === id){
-        file.title = title
-        file.isNew = false
-      }
-      return file
-    })
-    setFiles(newFiles)
+    // 修改前的代码
+    //  const newFiles = files.map(file => {
+    //    if(file.id === id){
+    //      file.title = title
+    //      file.isNew = false
+    //    }
+    //    return file
+    //  })
+    // setFiles(newFiles)
+    
+    // 修改后的代码
+    const modifiedFile = {...files[id], title, isNew: false}
+    setFiles({...files, [id]: modifiedFile})
   }
   // 文件搜索功能
   const fileSearch = (keyword) => {
     // filter out the new files based on the keyword
-    const newFiles = files.filter(file => file.title.includes(keyword))
+    
+    // 修改前的代码
+    //const newFiles = files.filter(file => file.title.includes(keyword))
+    // 修改后的代码
+    const newFiles = filesArr.filter(file => file.title.includes(keyword))
     // setFiles(newFiles)
     setSearchedFiles(newFiles)
   }
   // 如果打开的数组中有搜索的文件
-  const fileListArr = (searchedFiles.length > 0) ? searchedFiles : files
+  //const fileListArr = (searchedFiles.length > 0) ? searchedFiles : files
+  // 修改后的代码
+  const fileListArr = (searchedFiles.length > 0) ? searchedFiles : filesArr
   // 新建文件
   const createNewFile = () => {
     const newID = uuidv4()
-    const newFiles = [
-      ...files,
-      {
-        id: newID,
-        title: '',
-        body: '## 请输入Markdown',
-        createAt: new Date().getTime(),
-        isNew: true
-      }
-    ]
-    setFiles(newFiles)
+    
+    // 修改前的代码
+    //  const newFiles = [
+    //    ...files,
+    //    {
+    //      id: newID,
+    //      title: '',
+    //      body: '## 请输入Markdown',
+    //      createAt: new Date().getTime(),
+    //      isNew: true
+    //    }
+    //  ]
+    //  setFiles(newFiles)
+    
+    // 修改后的代码
+    const newFile = {
+      id: newID,
+      title: '',
+      body: '## 请输入Markdown',
+      createAt: new Date().getTime(),
+      isNew: true
+    }
+    setFiles({...files, [newID]: newFile})
   }
   
   return (
