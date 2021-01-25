@@ -9,9 +9,9 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'easymde/dist/easymde.min.css'
 import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
-import defaultFiles from './utils/defaultFiles'
 import BottomBtn from './components/BottomBtn'
 import TabList from './components/TabList'
+import defaultFiles from './utils/defaultFiles'
 
 // 在React的App.js中引用Node.js的模块
 // 需要在require前添加window对象
@@ -23,6 +23,14 @@ const { join } = window.require('path')
 // webPreferences: { enableRemoteModule: true }
 // 否则这个remote将获取不到而导致报错
 const { remote } = window.require('electron')
+
+//【注意】electron版本不能太新，使用4.0.0版本
+const Store = window.require('electron-store')
+const store = new Store()
+store.set('name', 'OwinLi')
+console.log(store.get('name')) // OwinLi
+store.delete('name')
+console.log(store.get('name')) // undefined
 
 function App() {
   // 修改前的代码
