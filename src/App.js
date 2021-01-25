@@ -26,17 +26,29 @@ const { remote } = window.require('electron')
 
 //【注意】electron版本不能太新，使用4.0.0版本
 const Store = window.require('electron-store')
-const store = new Store()
-store.set('name', 'OwinLi')
-console.log(store.get('name')) // OwinLi
-store.delete('name')
-console.log(store.get('name')) // undefined
+const fileStore = new Store({'name': 'Files Data'})
+
+// 数据持久化
+const saveFilesToStore = (files) => {
+  // we don't have to store any info in file system, eg:isNew, body, etc.
+  const filesStoreObj = objToArr(files).reduce((result, file) => {
+    const { id, path, title, createdAt } = file
+    result[id] = {
+      id,
+      path,
+      title,
+      createdAt,
+    }
+    return result
+  }, {})
+  fileStore.set('files', filesStoreObj)
+}
 
 function App() {
   // 修改前的代码
   // const [files, setFiles] = useState(defaultFiles)
   // 修改后的代码
-  const [files, setFiles] = useState(flattenArr(defaultFiles))
+  const [files, setFiles] = useState(fileStore.get('files') || {})
   //console.log(files)
   const [activeFileID, setActiveFileID] = useState('')
   const [openedFileIDs, setOpenedFileIDs] = useState([])
@@ -104,15 +116,17 @@ function App() {
   }
     // 当删除文件的时候
   const deleteFile = (id) => {
-    // filter out the current file id
-    
-    // 修改前的代码
-    //const newFile = files.filter(file => file.id !== id)
-    // 修改后的代码
-    delete files[id]
-    setFiles(files)
-    // close the tab if opened
-    tabClose(id)
+    fileHelper.deleteFile(files[id].path).then(() => {
+      // 修改前的代码
+      //const newFile = files.filter(file => file.id !== id)
+      // 修改后的代码
+      delete files[id]
+      setFiles(files)
+      // 数据持久化
+      saveFilesToStore(files)
+      // close the tab if opened
+      tabClose(id)
+    })
   }
   // 更新文件名的功能
   const updateFileName = (id, title, isNew) => {
@@ -126,25 +140,29 @@ function App() {
     //  })
     // setFiles(newFiles)
     
+    const newPath = join(savedLocation, `${title}.md`)
+    
     // 修改后的代码
-    const modifiedFile = {...files[id], title, isNew: false}
+    const modifiedFile = {...files[id], title, isNew: false, path: newPath}
+    const newFiles = { ...files, [id]: modifiedFile }
     // 如果是新建文件需要【首次命名】
     if(isNew){
       // 那么保存新建的文件到savedLocation所指定的路径(即documents)
-      fileHelper.writeFile(join(savedLocation, `${title}.md`), 
+      fileHelper.writeFile(newPath,
         files[id].body).then((res) => {
-          setFiles({...files, [id]: modifiedFile})
+          setFiles(newFiles)
+          saveFilesToStore(newFiles)
           console.log("🌹🌹🌹🌹🌹🌹🌹🌹🌹执行了!") // 可以执行
           console.log(res) // undefined
         }).catch(err => {
           console.log("👻👻👻👻👻👻👻👻👻👻异常了!")
         })
     }else{ //否则如果是已经存在的文件需要【重命名】
-      fileHelper.renameFile(join(savedLocation, `${files[id].title}.md`),
-        join(savedLocation, `${title}.md`)
-    ).then(() => {
-      setFiles({...files, [id]: modifiedFile})
-    })
+      const oldPath = join(savedLocation, `${files[id].title}.md`)
+      fileHelper.renameFile(oldPath,newPath).then(() => {
+        setFiles(newFiles)
+        saveFilesToStore(newFiles)
+      })
     }
   }
   // 文件搜索功能
@@ -201,7 +219,7 @@ function App() {
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
-        <div className="col-3 left-panel">
+        <div className="col-3 bg-light left-panel">
           <FileSearch
             title="我的云文档"
             onFileSearch={ fileSearch }
