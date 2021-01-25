@@ -58,7 +58,8 @@ function App() {
   // 添加的代码
   const filesArr = objToArr(files)
   //console.log(filesArr)
-  const savedLocation = remote.app.getPath('documents')
+    const savedLocation = remote.app.getPath('documents')
+//const savedLocation = remote.app.getPath('/users/mac/documents/mymarkdown')
   // 修改前代码
   // const activeFile = files.find(file=>file.id === activeFileID)
   // 修改后代码
@@ -72,9 +73,20 @@ function App() {
     // return files.find(file => file.id === openID)
     return files[openID]
   })
+  // 点击文件
   const fileClick = (fileID) => {
     // set current active file
     setActiveFileID(fileID)
+    const currentFile = files[fileID]
+    
+    // 读取文件的信息
+    if(!currentFile.isLoaded){
+      fileHelper.readFile(currentFile.path).then(value => {
+        const newFile = { ...files[fileID], body: value, isLoaded: true }
+        setFiles({ ...files, [fileID]: newFile })
+      })
+    }
+    
     // if openedFiles don't have the current ID
     // then add new fileID to openedFiles
     if(!openedFileIDs.includes(fileID)){
