@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from 'react-simplemde-editor'
 import { v4 as uuidv4 } from 'uuid'
 import {flattenArr, objToArr} from './utils/helper'
+import fileHelper from './utils/fileHelper'
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'easymde/dist/easymde.min.css'
@@ -14,8 +15,14 @@ import TabList from './components/TabList'
 
 // 在React的App.js中引用Node.js的模块
 // 需要在require前添加window对象
-const fs = window.require('fs')
-console.dir(fs)
+const { join } = window.require('path')
+//console.dir(path)
+
+// 在渲染进程中使用主进程的API，需要使用到remote
+// 需要在main.js创建Window的时候，设置一个新的参数使能remote
+// webPreferences: { enableRemoteModule: true }
+// 否则这个remote将获取不到而导致报错
+const { remote } = window.require('electron')
 
 function App() {
   // 修改前的代码
@@ -31,16 +38,20 @@ function App() {
   // 添加的代码
   const filesArr = objToArr(files)
   //console.log(filesArr)
+  const savedLocation = remote.app.getPath('documents')
+  // 修改前代码
+  // const activeFile = files.find(file=>file.id === activeFileID)
+  // 修改后代码
+  const activeFile = files[activeFileID]
+  // 如果打开的数组中有搜索的文件
+  //const fileListArr = (searchedFiles.length > 0) ? searchedFiles : files
+  // 修改后的代码
+  const fileListArr = (searchedFiles.length > 0) ? searchedFiles : filesArr
   
   const openedFiles = openedFileIDs.map(openID => {
     // return files.find(file => file.id === openID)
     return files[openID]
   })
-  // 修改前代码
-  // const activeFile = files.find(file=>file.id === activeFileID)
-  // 修改后代码
-  const activeFile = files[activeFileID]
-  
   const fileClick = (fileID) => {
     // set current active file
     setActiveFileID(fileID)
@@ -96,7 +107,7 @@ function App() {
     tabClose(id)
   }
   // 更新文件名的功能
-  const updateFileName = (id, title) => {
+  const updateFileName = (id, title, isNew) => {
     // 修改前的代码
     //  const newFiles = files.map(file => {
     //    if(file.id === id){
@@ -109,7 +120,24 @@ function App() {
     
     // 修改后的代码
     const modifiedFile = {...files[id], title, isNew: false}
-    setFiles({...files, [id]: modifiedFile})
+    // 如果是新建文件需要【首次命名】
+    if(isNew){
+      // 那么保存新建的文件到savedLocation所指定的路径(即documents)
+      fileHelper.writeFile(join(savedLocation, `${title}.md`), 
+        files[id].body).then((res) => {
+          setFiles({...files, [id]: modifiedFile})
+          console.log("🌹🌹🌹🌹🌹🌹🌹🌹🌹执行了!") // 可以执行
+          console.log(res) // undefined
+        }).catch(err => {
+          console.log("👻👻👻👻👻👻👻👻👻👻异常了!")
+        })
+    }else{ //否则如果是已经存在的文件需要【重命名】
+      fileHelper.renameFile(join(savedLocation, `${files[id].title}.md`),
+        join(savedLocation, `${title}.md`)
+    ).then(() => {
+      setFiles({...files, [id]: modifiedFile})
+    })
+    }
   }
   // 文件搜索功能
   const fileSearch = (keyword) => {
@@ -122,10 +150,7 @@ function App() {
     // setFiles(newFiles)
     setSearchedFiles(newFiles)
   }
-  // 如果打开的数组中有搜索的文件
-  //const fileListArr = (searchedFiles.length > 0) ? searchedFiles : files
-  // 修改后的代码
-  const fileListArr = (searchedFiles.length > 0) ? searchedFiles : filesArr
+  
   // 新建文件
   const createNewFile = () => {
     const newID = uuidv4()
@@ -152,6 +177,17 @@ function App() {
       isNew: true
     }
     setFiles({...files, [newID]: newFile})
+  }
+  // 保存当前的文件
+  const saveCurrentFile = () => {
+    // 如果存在活跃的文件，才能保存(如果不进行判断，则会报错)
+    if(activeFile){
+      fileHelper.writeFile(join(savedLocation, `${activeFile.title}.md`),
+      activeFile.body
+      ).then(() => {
+        setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
+      })
+    }
   }
   
   return (
@@ -182,6 +218,14 @@ function App() {
                 text="导入"
                 colorClass="btn-success"
                 icon={ faFileImport }
+              />
+            </div>
+            <div className="col">
+              <BottomBtn 
+                text="保存"
+                colorClass="btn-hope-red"
+                icon={ faSave }
+                onBtnClick={saveCurrentFile}
               />
             </div>
           </div>

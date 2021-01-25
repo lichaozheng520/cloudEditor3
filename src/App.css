@@ -17,11 +17,21 @@
   min-height: 100vh;
   position: relative;
 }
-.button-group{
+/*.button-group{
   position: absolute;
+  width: 100%;
+  bottom: 0;
+}*/
+.button-group{
+  position: fixed;
+  z-index: 999;
   width: 100%;
   bottom: 0;
 }
 .no-border{
   border-radius: 0 !important;
+}
+.btn-hope-red{
+  background-color: red !important;
+  color: white !important;
 }

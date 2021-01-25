@@ -25,7 +25,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
 
   useEffect(() => {
     const newFile = files.find(file => file.isNew)
-    console.log(newFile)
+    console.log(newFile) //undefined
     if(newFile){
       setEditStatus(newFile.id)
       setValue(newFile.title)
@@ -37,7 +37,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     const editItem = files.find(file => file.id === editStatus)
     // 如果是enter键/同时是编辑状态/同时value值不为空,那么就传入搜索值
     if(enterPressed && editStatus && (value.trim() !== '')){
-      onSaveEdit(editItem.id, value)
+      onSaveEdit(editItem.id, value, editItem.isNew)
       // 设置编辑状态为默认值
       setEditStatus(false)
       // 设置值为默认值
