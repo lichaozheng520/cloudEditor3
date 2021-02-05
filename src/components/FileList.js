@@ -11,6 +11,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   let node = useRef(null)
   const enterPressed = useKeyPress(13)
   const escPressed = useKeyPress(27)
+  
   const closeSearch = (editItem) => {
     // 设置默认编辑状态
     setEditStatus(false)

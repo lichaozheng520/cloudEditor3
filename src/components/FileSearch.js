@@ -5,8 +5,8 @@
   import useKeyPress from '../hooks/useKeyPress.js'
   
   const FileSearch = ({ title, onFileSearch }) => {
-  const [ inputActive, setInputActive ] = useState(false)
-  const [ value, setValue ] = useState('')
+    const [ inputActive, setInputActive ] = useState(false)
+    const [ value, setValue ] = useState('')
   
   // 传入键码，使用自定义Hook useKeyPress中的两个键
   const enterPressed = useKeyPress(13)
@@ -22,6 +22,7 @@
     // 搜索一次空字符串,使得原来的文件恢复
     onFileSearch('')
   }
+  
   useEffect(() => {
     if(enterPressed && inputActive){
       onFileSearch(value)
@@ -42,12 +43,14 @@
       document.removeEventListener('keyup', handleInputEvent)
     } */
   })
+  
   useEffect(() => {
     // 当点击"搜索"的时候才调用focus
     if(inputActive){
       // 自动获取焦点
       node.current.focus()
     }
+    // 只有当inputActive改变的时候才重新执行useEffect
   }, [inputActive])
   
   return (

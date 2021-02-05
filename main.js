@@ -7,6 +7,7 @@ app.on('ready', () => {
     width: 1024,
     height: 680,
     webPreferences: {
+      // 设置node可用
       nodeIntegration: true,
       // 如果不设置的话，则后面remote不能获取到
       enableRemoteModule: true
