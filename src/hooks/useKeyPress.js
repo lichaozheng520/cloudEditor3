@@ -23,7 +23,7 @@ const useKeyPress = (targetKeyCode) => {
       document.removeEventListener('keyup', keyUpHandler)
     }
     // 这里有一个空数组(为了卸载的时候清除掉)
-  }, [])
+  })
   
   return keyPressed
 }

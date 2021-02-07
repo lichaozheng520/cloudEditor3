@@ -26,7 +26,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
 
   useEffect(() => {
     const newFile = files.find(file => file.isNew)
-    console.log(newFile) //undefined
+    // console.log(newFile) //undefined
     if(newFile){
       setEditStatus(newFile.id)
       setValue(newFile.title)

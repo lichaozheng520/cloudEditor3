@@ -11,11 +11,10 @@ import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
 import BottomBtn from './components/BottomBtn'
 import TabList from './components/TabList'
-import defaultFiles from './utils/defaultFiles'
 
 // 在React的App.js中引用Node.js的模块
 // 需要在require前添加window对象
-const { join } = window.require('path')
+const { join, basename, extname, dirname } = window.require('path')
 //console.dir(path)
 
 // 在渲染进程中使用主进程的API，需要使用到remote
@@ -152,7 +151,11 @@ function App() {
     //  })
     // setFiles(newFiles)
     
-    const newPath = join(savedLocation, `${title}.md`)
+    // newPath should be different based on isNew
+    // if isNew is false, path should be old dirname + new title
+    const newPath = isNew ? 
+      join(savedLocation, `${title}.md`)
+      : join(dirname(files[id].path), `${title}.md`)
     
     // 修改后的代码
     const modifiedFile = {...files[id], title, isNew: false, path: newPath}
@@ -170,7 +173,7 @@ function App() {
           console.log("👻👻👻👻👻👻👻👻👻👻异常了!")
         })
     }else{ //否则如果是已经存在的文件需要【重命名】
-      const oldPath = join(savedLocation, `${files[id].title}.md`)
+      const oldPath = files[id].path
       fileHelper.renameFile(oldPath,newPath).then(() => {
         setFiles(newFiles)
         saveFilesToStore(newFiles)
@@ -220,14 +223,62 @@ function App() {
   const saveCurrentFile = () => {
     // 如果存在活跃的文件，才能保存(如果不进行判断，则会报错)
     if(activeFile){
-      fileHelper.writeFile(join(savedLocation, `${activeFile.title}.md`),
-      activeFile.body
-      ).then(() => {
+      fileHelper.writeFile(activeFile.path,
+      activeFile.body).then(() => {
         setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
       })
     }
   }
-  
+  const importFiles = () => {
+    remote.dialog.showOpenDialog({
+      title: '选择导入的Markdown文件',
+      properties: ['openFile', 'multiSelections'],
+      filters: [ 
+        {name: 'Markdown files', extensions: ['md']} 
+      ]
+    }).then(result => {
+        // console.log(result)
+        console.log(result.filePaths)
+        var paths = result.filePaths
+        if(Array.isArray(paths)){
+          // filter out the path we already have in electron store
+          // ["/Users/mac/xxx.md", "/Users/mac/yyy.md"]
+          const filteredPaths = paths.filter(path => {
+            const alreadyAdded = Object.values(files).find(file => {
+              return file.path === path
+            })
+            return !alreadyAdded
+          })
+          // extend the path array to an array contains files info
+          // [{ id: '1', path: '', title: '' }, {}]
+          const importFilesArr = filteredPaths.map(path => {
+            return {
+              id: uuidv4(),
+              title: basename(path, extname(path)),
+              path,
+            }
+          })
+          // 打印新导入的文件列表
+          //console.log(importFilesArr)
+          
+          // get the new files object in flattenArr
+          const newFiles = { ...files, ...flattenArr(importFilesArr)}
+          // 打印所有的文件列表
+          //console.log(newFiles)
+          // setState and update electron store
+          setFiles(newFiles)
+          // 更新electron store
+          saveFilesToStore(newFiles)
+          if(importFilesArr.length){
+            remote.dialog.showMessageBox({
+              type: 'info',
+              title: `成功导入了${importFilesArr.length}个文件`,
+              message: `成功导入了${importFilesArr.length}个文件`,
+            })
+          }
+        }
+    })
+  }
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
@@ -256,6 +307,7 @@ function App() {
                 text="导入"
                 colorClass="btn-success"
                 icon={ faFileImport }
+                onBtnClick={ importFiles }
               />
             </div>
             <div className="col">
