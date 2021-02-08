@@ -1,10 +1,11 @@
-const  { app, BrowserWindow } = require('electron')
+const  { app, BrowserWindow, Menu } = require('electron')
 const isDev = require('electron-is-dev')
+const menuTemplate = require('./src/menuTemplate')
 let mainWindow;
 
 app.on('ready', () => {
   mainWindow = new BrowserWindow({
-    width: 1024,
+    width: 1160,
     height: 680,
     webPreferences: {
       // 设置node可用
@@ -15,4 +16,8 @@ app.on('ready', () => {
   })
   const urlLoaction = isDev ? 'http://localhost:3000' : 'dummyurl'
   mainWindow.loadURL(urlLoaction)
+  
+  // set the menu
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
 })

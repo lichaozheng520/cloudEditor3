@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from 'react-simplemde-editor'
 import { v4 as uuidv4 } from 'uuid'
@@ -11,6 +11,7 @@ import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
 import BottomBtn from './components/BottomBtn'
 import TabList from './components/TabList'
+import useIpcRenderer from './hooks/useIpcRenderer'
 
 // 在React的App.js中引用Node.js的模块
 // 需要在require前添加window对象
@@ -21,7 +22,7 @@ const { join, basename, extname, dirname } = window.require('path')
 // 需要在main.js创建Window的时候，设置一个新的参数使能remote
 // webPreferences: { enableRemoteModule: true }
 // 否则这个remote将获取不到而导致报错
-const { remote } = window.require('electron')
+const { remote, ipcRenderer } = window.require('electron')
 
 //【注意】electron版本不能太新，使用4.0.0版本
 const Store = window.require('electron-store')
@@ -279,6 +280,15 @@ function App() {
         }
     })
   }
+  useEffect(() => {
+    const callback = () => {
+      console.log('hello from menu')
+    }
+    ipcRenderer.on('create-new-file', callback)
+    return () => {
+      ipcRenderer.removeListener('create-new-file', callback)
+    }
+  })
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
@@ -295,7 +305,7 @@ function App() {
           />
           <div className="row no-gutters button-group">
             <div className="col">
-              <BottomBtn 
+              <BottomBtn
                 text="新建"
                 colorClass="btn-primary"
                 icon={ faPlus }
@@ -303,7 +313,7 @@ function App() {
               />
             </div>
             <div className="col">
-              <BottomBtn 
+              <BottomBtn
                 text="导入"
                 colorClass="btn-success"
                 icon={ faFileImport }
