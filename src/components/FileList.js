@@ -3,7 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { faMarkdown } from '@fortawesome/free-brands-svg-icons'
 import PropTypes from 'prop-types'
-import useKeyPress from '../hooks/useKeyPress.js'
+import useKeyPress from '../hooks/useKeyPress'
+import useContextMenu from '../hooks/useContextMenu'
+import { getParentNode } from '../utils/helper'
 
 // load nodejs module
 const { remote } = window.require('electron')
@@ -27,7 +29,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
       onFileDelete(editItem.id)
     }
   }
-
+  
   useEffect(() => {
     const newFile = files.find(file => file.isNew)
     // console.log(newFile) //undefined
@@ -37,8 +39,34 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     }
     // 当files有所变化的时候运行该useEffect
   }, [files])
-
-  useEffect(() => {
+  
+  const clickedItem = useContextMenu([
+    {
+      label: '打开',
+      click: () => {
+        // console.log('clicking', clickedItem)
+        const parentElement = getParentNode(clickedItem.current, 'file-item')
+        if(parentElement){
+          onFileClick(parentElement.dataset.id)
+        }
+        //console.log(parentElement.dataset.id)
+      }
+    },
+    {
+      label: '重命名',
+      click: () => {
+        console.log('renaming')
+      }
+    },
+    {
+      label: '删除',
+      click: () => {
+        console.log('deleting')
+      }
+    }
+  ], '.file-list', [files])
+  
+  /*useEffect(() => {
     const menu = new Menu()
     menu.append(new MenuItem({
       label: '打开',
@@ -65,7 +93,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     return () => {
       window.removeEventListener('contextmenu', handleContextMenu)
     }
-  })
+  }) */
 
   useEffect(() => {
     const editItem = files.find(file => file.id === editStatus)
@@ -87,6 +115,8 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
         files.map(file => (
           <li className="list-group-item bg-light row d-flex align-items-center file-item mx-0"
               key={file.id}
+              data-id={file.id}
+              data-title={file.title}
           >
             { ((file.id !== editStatus) && !file.isNew) &&
               <>
