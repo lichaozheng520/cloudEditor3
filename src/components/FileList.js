@@ -5,6 +5,10 @@ import { faMarkdown } from '@fortawesome/free-brands-svg-icons'
 import PropTypes from 'prop-types'
 import useKeyPress from '../hooks/useKeyPress.js'
 
+// load nodejs module
+const { remote } = window.require('electron')
+const { Menu, MenuItem } = remote
+
 const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   const [ editStatus, setEditStatus ] = useState(false)
   const [ value, setValue ] = useState('')
@@ -33,6 +37,35 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     }
     // 当files有所变化的时候运行该useEffect
   }, [files])
+
+  useEffect(() => {
+    const menu = new Menu()
+    menu.append(new MenuItem({
+      label: '打开',
+      click: () => {
+        console.log('clicking')
+      }
+    }))
+    menu.append(new MenuItem({
+      label: '重命名',
+      click: () => {
+        console.log('renaming')
+      }
+    }))
+    menu.append(new MenuItem({
+      label: '删除',
+      click: () => {
+        console.log('deleting')
+      }
+    }))
+    const handleContextMenu = (e) => {
+      menu.popup({window: remote.getCurrentWindow()})
+    }
+    window.addEventListener('contextmenu', handleContextMenu)
+    return () => {
+      window.removeEventListener('contextmenu', handleContextMenu)
+    }
+  })
 
   useEffect(() => {
     const editItem = files.find(file => file.id === editStatus)
