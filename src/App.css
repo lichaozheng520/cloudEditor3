@@ -25,7 +25,8 @@
 .button-group{
   position: fixed;
   z-index: 999;
-  width: 100%;
+  /* 固定定位，设100%的话变成整个宽度了 */
+  width: 25%;
   bottom: 0;
 }
 .no-border{

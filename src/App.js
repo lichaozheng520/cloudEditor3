@@ -118,13 +118,17 @@ function App() {
     }
     return file
     }) */
-    // 修改后的代码
+   
+   // 如果所编辑的文件中有修改
+   if(value !== files[id].body){
+     // 修改后的代码
     const newFile = {...files[id], body: value}
     setFiles({...files, [id]: newFile})
     // update unsavedIDs
     if(!unsavedFileIDs.includes(id)){
       setUnsavedFileIDs([...unsavedFileIDs, id])
     }
+   }
   }
     // 当删除文件的时候
   const deleteFile = (id) => {
@@ -280,15 +284,13 @@ function App() {
         }
     })
   }
-  useEffect(() => {
-    const callback = () => {
-      console.log('hello from menu')
-    }
-    ipcRenderer.on('create-new-file', callback)
-    return () => {
-      ipcRenderer.removeListener('create-new-file', callback)
-    }
+  
+  useIpcRenderer({
+    'create-new-file': createNewFile,
+    'import-file': importFiles,
+    'save-edit-file': saveCurrentFile
   })
+  
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
