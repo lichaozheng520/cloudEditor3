@@ -158,6 +158,7 @@ let template = [{
 },
 ]
 
+// 如果是在Mac系统下
 if (process.platform === 'darwin') {
   const name = app.getName()
   template.unshift({
@@ -201,11 +202,12 @@ if (process.platform === 'darwin') {
       }
     }]
   })
-} else {
+} else { // 如果是其他平台
   template[0].submenu.push({
     label: '设置',
     accelerator: 'Ctrl+,',
     click: () => {
+      // ipcMain发送open-settings-window事件
       ipcMain.emit('open-settings-window')
     }
   })

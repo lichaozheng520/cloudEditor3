@@ -27,6 +27,7 @@ const { remote, ipcRenderer } = window.require('electron')
 //【注意】electron版本不能太新，使用4.0.0版本
 const Store = window.require('electron-store')
 const fileStore = new Store({'name': 'Files Data'})
+const settingsStore = new Store({name: 'Settings'})
 
 // 数据持久化
 const saveFilesToStore = (files) => {
@@ -58,7 +59,8 @@ function App() {
   // 添加的代码
   const filesArr = objToArr(files)
   //console.log(filesArr)
-    const savedLocation = remote.app.getPath('documents')
+  //const savedLocation = remote.app.getPath('documents')
+  const savedLocation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents')
 //const savedLocation = remote.app.getPath('/users/mac/documents/mymarkdown')
   // 修改前代码
   // const activeFile = files.find(file=>file.id === activeFileID)
